@@ -30,8 +30,6 @@ class ParkingLogin:
         time.sleep(1)
         self.driver.find_element(By.XPATH, value='//*[@id="root"]/div/div/div/div[2]/div/div/div[2]/div/div/div[3]/button').click()
         time.sleep(1)
-        return
-        # cookies_list = self.driver.get_cookies()
         # cookieString = ""
         # for cookie in cookies_list[:-1]:
         #     cookieString = cookieString + cookie["name"] + "="+cookie["value"]+"; "
@@ -42,6 +40,7 @@ class ParkingLogin:
         # #     "cookieString": cookieString,
         # #     "xsrf_token": xsrf_token
         # # }
+        return
     
     def getHonkGuid(self):
         storage = LocalStorage(self.driver)
@@ -51,14 +50,43 @@ class ParkingLogin:
         storage = LocalStorage(self.driver)
         return storage["oaTag"]
     
-    def getPromoHashId(self, authHeader, honkGuid):
+    def createCart(self, authHeader, honkGuid):
         url = f"https://platform.honkmobile.com/graphql?honkGUID={honkGuid}"
         headers = {
             "content-type": "application/json",
             "user-agent": "PostmanRuntime/7.36.1",
             'X-Authentication': authHeader,
-            'cookie': '__cf_bm=7DTuYoaeMIawJadtu.JozCdblLdqlF.IOB2ezIZkhTQ-1707344311-1-AfB5PVbsThCCiGr72IzyAZfhFAcWgdyG4KdJ8bGNJDB2YHvvLLNCSVQu33Jz1+JTQJx1gKjQUmw7kvvRZNnOuUE='
+            # 'cookie': '__cf_bm=QPcEfR53mDMnYZ1MemyM6zcbQfDmH6QIgzWereCS56w-1707329203-1-AdA482iReWiGqeYpXnDhEcE37pKKs7QHA0rvK9c+q+xymJtrUZ+jodGdy1C3rxDzCjRRuWGTQaeWlK/9hHS0PM8='
         }
+        payload = {
+            "operationName": "CreateCart",
+            "variables": {
+                "input": {
+                "startTime": "2024-02-10T08:00:00-07:00",
+                "zoneId": "elP1Tp",
+                "productType": "RESERVE"
+                }
+            },
+            "query": "mutation CreateCart($input: CreateCartInput!) {createCart(input: $input) {cart { hashid __typename} errors __typename }}"
+        }
+        response = requests.request("POST", url, headers=headers, json=payload)
+        print(response.text)
+        return response.json()
+    
+    def getVehicles(self, authHeader, honkGuid):
+        url = f"https://platform.honkmobile.com/vehicles?oa_tag={authHeader}&honkGUID={honkGuid}&app_version=69000"
+        headers = {
+            "content-type": "application/json",
+            "user-agent": "PostmanRuntime/7.36.1"
+        }
+        response = requests.request("GET", url, headers=headers)
+        cookie = ''
+        for item in response.cookies:
+            cookie = item.__dict__['value']
+        return {"vehicle": response.json(), "cookie": cookie}
+    
+    def getPromoHashId(self, authHeader, honkGuid, cookie):
+        url = f"https://platform.honkmobile.com/graphql?honkGUID={honkGuid}"
         payload = {
             "operationName": "AccountPromoCodes",
             "variables": {
@@ -66,8 +94,16 @@ class ParkingLogin:
             },
             "query": "fragment CorePromoCodeFields on PromoCode{hashid redeemCode shortDesc totalUses totalUsesCount expiry __typename}query AccountPromoCodes($zoneId: ID){accountPromoCodes(zoneId: $zoneId){...CorePromoCodeFields timezone startDate expiry promoCodesRates{activeSessionLimit activeSessionCount rate{hashid description zone{hashid __typename}__typename}__typename}__typename}}"
         }
+        headers = {
+            "Content-Type": "application/json",
+            'X-Authentication': authHeader,
+            'Cookie': '__cf_bm=LDedadeWTuCCtM7VmukxxmRPqomRycyvDIxRl7FRBq8-1707343101-1-AZBREH+WQYQ8evkbZBT2VSrdewGDOfi9WWLHsgUSKmnOC+Brhbauch7xguRRswHPWTN8pjNU3xQ9No4RnspwatI='
+        }
+        print(headers)
         response = requests.request("POST", url, headers=headers, json=payload)
         print(response.text)
+        
+
         return response.json()
     
         
