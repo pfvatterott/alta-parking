@@ -6,8 +6,8 @@ from localStorage import LocalStorage
 import requests
 import time
 
-email = config("email")
-password = config("password")
+# email = config("email")
+# password = config("password")
 
 parking_url = "https://reserve.altaparking.com/login"
 
@@ -18,7 +18,7 @@ class ParkingLogin:
     def __init__(self):
         self.driver = Firefox()
         
-    def login(self):
+    def login(self, email, password):
         self.driver.get(parking_url)
         self.driver.find_element(By.XPATH, value='//*[@id="emailAddress"]').send_keys(email)
         self.driver.find_element(By.XPATH, value='//*[@id="password"]').send_keys(password)

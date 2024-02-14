@@ -1,10 +1,11 @@
 from parking_login import ParkingLogin
 import time
-
+email = input("What is your altaparking.com email address?\n")
+password = input("What is your altaparking.com password?\n")
 parking_date = input("Which date would you like to make a reservation for? (YYYY-MM-DD)\n")
 
 parking = ParkingLogin()
-parking.login()
+parking.login(email, password)
 parking.getHonkGuid()
 parking.getAuthHeader()
 
